@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PlayMaker">
+<title>PlayMaker 8U</title>
+<style>
+:root {
+  --bg: #06090d;
+  --card: #0d1117;
+  --surface: #161b22;
+  --border: #21262d;
+  --green: #16a34a;
+  --green-field: #1a6b37;
+  --green-dk: #145229;
+  --accent: #4ade80;
+  --yellow: #eab308;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --orange: #f97316;
+  --purple: #a855f7;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --dim: #484f58;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { 
+  height: 100%; overflow: hidden;
+  background: var(--bg); color: var(--text);
+  font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* LAYOUT */
+#app { display: flex; flex-direction: column; height: 100dvh; }
+.header { flex: 0 0 auto; }
+.tabs { flex: 0 0 auto; }
+.content { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+
+/* HEADER */
+.header {
+display: flex; justify-content: space-between; align-items: center;
+padding: 10px 16px; border-bottom: 1px solid var(–border);
+background: var(–card);
+}
+.header-left h1 { font-size: 16px; font-weight: 900; letter-spacing: 2px; color: #fff; }
+.header-left .sub { font-size: 9px; color: var(–dim); letter-spacing: 1px; }
+.situation-display { text-align: right; }
+.situation-display .down-dist { font-size: 20px; font-weight: 900; color: var(–accent); }
+.situation-display .field-pos { font-size: 10px; color: var(–muted); }
+
+/* DOWN/DISTANCE BAR */
+.dd-bar {
+display: flex; align-items: center; gap: 8px;
+padding: 8px 16px; background: var(–card);
+border-bottom: 1px solid var(–border);
+}
+.dd-group { display: flex; flex-direction: column; gap: 2px; }
+.dd-group label { font-size: 8px; color: var(–dim); letter-spacing: 1px; text-transform: uppercase; }
+.dd-buttons { display: flex; gap: 2px; }
+.dd-btn {
+width: 34px; height: 30px; border-radius: 4px;
+border: 1px solid var(–border); background: var(–surface);
+color: var(–muted); font-size: 11px; font-weight: 800;
+font-family: inherit; cursor: pointer; display: flex;
+align-items: center; justify-content: center;
+}
+.dd-btn.active { border-color: var(–accent); background: #14532d; color: var(–accent); }
+.dd-stepper { display: flex; align-items: center; gap: 3px; }
+.dd-stepper button {
+width: 28px; height: 28px; border-radius: 4px;
+border: 1px solid var(–border); background: var(–surface);
+color: var(–muted); font-size: 16px; font-weight: 800;
+font-family: inherit; cursor: pointer; display: flex;
+align-items: center; justify-content: center; padding: 0;
+}
+.dd-stepper .val { font-size: 14px; font-weight: 900; color: #fff; width: 28px; text-align: center; }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(–border); background: var(–card); }
+.tab-btn {
+flex: 1; padding: 10px 0; border: none; background: transparent;
+color: var(–dim); font-size: 10px; font-weight: 800;
+font-family: inherit; cursor: pointer; letter-spacing: 1px;
+border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.tab-btn.active { color: var(–accent); border-bottom-color: var(–accent); }
+
+/* BUTTONS */
+.btn {
+padding: 7px 12px; border-radius: 5px;
+border: 1px solid var(–border); background: var(–surface);
+color: var(–muted); font-size: 10px; font-weight: 800;
+font-family: inherit; cursor: pointer; letter-spacing: 0.5px;
+white-space: nowrap;
+}
+.btn-green { border-color: var(–accent); color: var(–accent); background: #14532d; }
+.btn-blue { border-color: var(–blue); color: var(–blue); background: #1e3a5f; }
+.btn-red { border-color: var(–red); color: var(–red); background: #3b0f0f; }
+.btn-yellow { border-color: var(–yellow); color: var(–yellow); background: #422006; }
+
+/* PLAYBOOK LIST */
+.play-list { padding: 12px; }
+.play-category { margin-bottom: 16px; }
+.play-category-title {
+font-size: 11px; font-weight: 900; letter-spacing: 2px;
+padding: 6px 0; margin-bottom: 6px;
+border-bottom: 1px solid var(–border);
+}
+.play-card {
+display: flex; justify-content: space-between; align-items: center;
+padding: 10px 12px; margin-bottom: 4px;
+background: var(–surface); border: 1px solid var(–border); border-radius: 6px;
+cursor: pointer; transition: border-color 0.15s;
+}
+.play-card:active { border-color: var(–accent); }
+.play-card .name { font-size: 13px; font-weight: 700; color: var(–text); }
+.play-card .meta { font-size: 10px; color: var(–dim); margin-top: 2px; }
+.play-card .actions { display: flex; gap: 6px; }
+
+/* FIELD */
+.field-wrap { padding: 4px 8px; }
+svg.field { width: 100%; height: auto; display: block; border-radius: 8px; touch-action: none; }
+
+/* MODE BAR */
+.mode-bar { display: flex; gap: 4px; padding: 6px 12px; overflow-x: auto; flex-wrap: nowrap; }
+
+/* PLAYER SELECT */
+.player-select { display: flex; gap: 4px; padding: 2px 12px 6px; flex-wrap: wrap; }
+
+/* VIOLATIONS */
+.violations {
+margin: 4px 12px; padding: 6px 10px;
+background: #450a0a; border: 1px solid #b91c1c; border-radius: 6px;
+font-size: 10px; color: #fca5a5;
+}
+
+/* SAVE BAR */
+.save-bar { display: flex; gap: 5px; padding: 6px 12px; }
+.save-bar input {
+flex: 1; padding: 8px 10px; border-radius: 5px;
+border: 1px solid var(–border); background: var(–card);
+color: var(–text); font-size: 12px; font-family: inherit; outline: none;
+}
+.save-bar select {
+padding: 8px 4px; border-radius: 5px;
+border: 1px solid var(–border); background: var(–card);
+color: var(–muted); font-size: 11px; font-family: inherit;
+}
+
+/* RECOMMEND */
+.rec-section { padding: 12px 16px; }
+.rec-reasoning {
+font-size: 12px; color: var(–muted); line-height: 1.6;
+padding: 8px 10px; margin-bottom: 12px;
+border-left: 3px solid var(–border); background: var(–card); border-radius: 0 6px 6px 0;
+}
+.rec-card {
+display: flex; justify-content: space-between; align-items: center;
+padding: 10px 12px; margin-bottom: 6px;
+background: var(–surface); border: 1px solid var(–border); border-radius: 8px;
+}
+.rec-card.top { background: #14532d; border-color: var(–accent); }
+.rec-badge {
+font-size: 8px; background: var(–accent); color: #000;
+padding: 2px 6px; border-radius: 3px; font-weight: 900; margin-right: 6px;
+}
+.rec-name { font-size: 13px; font-weight: 800; color: #fff; }
+.rec-type { font-size: 9px; color: var(–dim); text-transform: uppercase; margin-left: 6px; }
+.rec-reason { font-size: 10px; color: var(–muted); margin-top: 2px; }
+
+/* QUICK SITUATIONS */
+.quick-sits { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.quick-sit {
+padding: 6px 10px; border-radius: 5px;
+border: 1px solid var(–border); background: var(–card);
+color: var(–muted); font-size: 10px; font-weight: 700;
+font-family: inherit; cursor: pointer;
+}
+.quick-sit:active { border-color: var(–accent); color: var(–accent); }
+
+/* RULES */
+.rules-panel { padding: 12px 16px; }
+.rule-item {
+font-size: 11px; color: var(–muted); padding: 5px 0;
+border-bottom: 1px solid var(–border);
+}
+.rule-num { color: var(–dim); margin-right: 6px; font-weight: 800; }
+
+/* iPad landscape optimization */
+@media (min-width: 768px) {
+.dd-btn { width: 42px; height: 36px; font-size: 13px; }
+.dd-stepper button { width: 36px; height: 36px; }
+.dd-stepper .val { font-size: 16px; width: 36px; }
+.btn { padding: 9px 16px; font-size: 12px; }
+.tab-btn { font-size: 12px; padding: 12px 0; }
+.play-card .name { font-size: 15px; }
+.situation-display .down-dist { font-size: 26px; }
+.mode-bar { gap: 6px; padding: 8px 16px; }
+}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ============================================================
+// MASSIVE PRE-BUILT PLAYBOOK
+// ============================================================
+const PREBUILT_PLAYS = [
+  // === RUNS ===
+  {
+    id:"run-jet-r", name:"Jet Sweep Right", type:"Run", subtype:"Jet Motion", ballOn:5,
+    desc:"RB1 motions right, takes handoff from QB at full speed. Your base play.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:80,y:-20,role:"JET"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:120,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[80,-20],[180,-30],[300,-40],[370,-55]],motion:true,runAfter:true},
+      {pid:"rb2",pts:[[310,-50],[310,-120]],motion:false},
+      {pid:"wr1",pts:[[120,-50],[120,-120]],motion:false}
+    ]
+  },
+  {
+    id:"run-jet-l", name:"Jet Sweep Left", type:"Run", subtype:"Jet Motion", ballOn:5,
+    desc:"Mirror of Jet Right. RB2 motions left, takes handoff. Attack both edges.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:290,y:-20,role:"JET"},{id:"wr1",x:250,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb2",pts:[[290,-20],[190,-30],[90,-40],[20,-55]],motion:true,runAfter:true},
+      {pid:"rb1",pts:[[60,-50],[60,-120]],motion:false},
+      {pid:"wr1",pts:[[250,-50],[250,-120]],motion:false}
+    ]
+  },
+  {
+    id:"run-sweep-r", name:"Sweep Right", type:"Run", subtype:"Handoff", ballOn:5,
+    desc:"Simple handoff to RB1 running right. No motion needed. Quick hitting.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:140,y:-10,role:"RB"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:70,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[140,-10],[200,-20],[300,-40],[370,-60]],motion:false,runAfter:true},
+      {pid:"rb2",pts:[[310,-50],[310,-120]],motion:false},
+      {pid:"wr1",pts:[[70,-50],[70,-120]],motion:false}
+    ]
+  },
+  {
+    id:"run-sweep-l", name:"Sweep Left", type:"Run", subtype:"Handoff", ballOn:5,
+    desc:"Simple handoff to RB2 running left. No motion.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:70,y:-50,role:"WR"},{id:"rb2",x:230,y:-10,role:"RB"},{id:"wr1",x:310,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb2",pts:[[230,-10],[170,-20],[80,-40],[20,-60]],motion:false,runAfter:true},
+      {pid:"rb1",pts:[[70,-50],[70,-120]],motion:false},
+      {pid:"wr1",pts:[[310,-50],[310,-120]],motion:false}
+    ]
+  },
+  {
+    id:"run-counter", name:"Counter Run", type:"Run", subtype:"Misdirection", ballOn:5,
+    desc:"QB fakes right, hands off to RB2 going left. Sells the defense wrong.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:140,y:-10,role:"FAKE"},{id:"rb2",x:230,y:-10,role:"RB"},{id:"wr1",x:310,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[140,-10],[200,-20],[260,-30]],motion:false},
+      {pid:"rb2",pts:[[230,-10],[170,-25],[80,-45],[20,-60]],motion:false,runAfter:true},
+      {pid:"wr1",pts:[[310,-50],[310,-120]],motion:false}
+    ]
+  },
+  {
+    id:"run-qb-pitch", name:"QB Pitch Right", type:"Run", subtype:"Pitch", ballOn:5,
+    desc:"QB pitches to RB1 running wide right. Faster than handoff, more risk.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:260,y:-10,role:"RB"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:70,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[260,-10],[320,-30],[370,-55]],motion:false,runAfter:true},
+      {pid:"rb2",pts:[[310,-50],[310,-120]],motion:false},
+      {pid:"wr1",pts:[[70,-50],[70,-120]],motion:false}
+    ]
+  },
+  {
+    id:"run-draw", name:"Delayed Draw", type:"Run", subtype:"Misdirection", ballOn:10,
+    desc:"QB drops back like a pass, then hands to RB1 up the middle after defenders drop.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:160,y:-15,role:"RB"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:70,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[160,-15],[175,-30],[187,-60],[187,-120]],motion:false,runAfter:true},
+      {pid:"rb2",pts:[[310,-50],[340,-90],[360,-130]],motion:false},
+      {pid:"wr1",pts:[[70,-50],[40,-90],[30,-130]],motion:false}
+    ]
+  },
+
+  // === PLAY ACTION PASSES ===
+  {
+    id:"pa-jet-slant", name:"Jet Fake - Slant to WR1", type:"Pass", subtype:"Play Action", ballOn:5,
+    desc:"Fake jet sweep right to RB1, throw slant to WR1. Your #1 counter play.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:80,y:-20,role:"FAKE"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:130,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[80,-20],[180,-30],[290,-40]],motion:true},
+      {pid:"wr1",pts:[[130,-50],[130,-75],[230,-110]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false}
+    ]
+  },
+  {
+    id:"pa-jet-deep", name:"Jet Fake - Go to RB2", type:"Pass", subtype:"Play Action", ballOn:5,
+    desc:"Fake jet sweep right, RB2 runs a go route. Deep shot off play action.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:80,y:-20,role:"FAKE"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:130,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[80,-20],[180,-30],[290,-40]],motion:true},
+      {pid:"rb2",pts:[[310,-50],[310,-160]],motion:false},
+      {pid:"wr1",pts:[[130,-50],[130,-80],[80,-100]],motion:false}
+    ]
+  },
+  {
+    id:"pa-sweep-corner", name:"Sweep Fake - Corner Route", type:"Pass", subtype:"Play Action", ballOn:15,
+    desc:"Fake sweep right handoff, throw corner to WR1. Kills cover-2 zones.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:140,y:-10,role:"FAKE"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:260,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[140,-10],[200,-20],[260,-30]],motion:false},
+      {pid:"wr1",pts:[[260,-50],[260,-90],[330,-140]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[340,-80]],motion:false}
+    ]
+  },
+
+  // === SIMPLE PASSES ===
+  {
+    id:"pass-slant-r", name:"Quick Slant Right", type:"Pass", subtype:"Quick Pass", ballOn:5,
+    desc:"WR1 runs a 45-degree slant across the middle. Easiest throw and catch.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:130,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"wr1",pts:[[130,-50],[130,-75],[220,-110]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-130]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false}
+    ]
+  },
+  {
+    id:"pass-out-r", name:"Quick Out Right", type:"Pass", subtype:"Quick Pass", ballOn:5,
+    desc:"RB2 runs a quick out to the right sideline. Short and safe.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:300,y:-50,role:"WR"},{id:"wr1",x:200,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb2",pts:[[300,-50],[300,-80],[370,-80]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-130]],motion:false},
+      {pid:"wr1",pts:[[200,-50],[200,-100]],motion:false}
+    ]
+  },
+  {
+    id:"pass-out-l", name:"Quick Out Left", type:"Pass", subtype:"Quick Pass", ballOn:5,
+    desc:"RB1 runs a quick out to the left sideline. Mirror of right out.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:80,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:180,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[80,-50],[80,-80],[10,-80]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false},
+      {pid:"wr1",pts:[[180,-50],[180,-100]],motion:false}
+    ]
+  },
+  {
+    id:"pass-curl", name:"Curl Route", type:"Pass", subtype:"Quick Pass", ballOn:10,
+    desc:"WR1 runs 10 yards and curls back to QB. High percentage catch.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:150,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"wr1",pts:[[150,-50],[150,-120],[160,-110]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-130]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false}
+    ]
+  },
+  {
+    id:"pass-flat-r", name:"Flat Right", type:"Pass", subtype:"Quick Pass", ballOn:5,
+    desc:"RB1 runs to the right flat, short dump pass. Good for short yardage.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:120,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:70,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[120,-50],[120,-60],[250,-65],[350,-60]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false},
+      {pid:"wr1",pts:[[70,-50],[70,-130]],motion:false}
+    ]
+  },
+  {
+    id:"pass-cross", name:"Crossing Routes", type:"Pass", subtype:"Intermediate", ballOn:10,
+    desc:"RB1 and RB2 cross paths 10 yards downfield. Zone killer.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:187,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[60,-50],[60,-90],[300,-100]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-90],[80,-100]],motion:false},
+      {pid:"wr1",pts:[[187,-50],[187,-140]],motion:false}
+    ]
+  },
+  {
+    id:"pass-bubble-r", name:"Bubble Screen Right", type:"Pass", subtype:"Screen", ballOn:5,
+    desc:"Quick pass to RB1 on the right. Functions like a run but it's a forward pass.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:310,y:-45,role:"WR"},{id:"rb2",x:250,y:-50,role:"WR"},{id:"wr1",x:70,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[310,-45],[330,-35],[360,-55]],motion:false},
+      {pid:"rb2",pts:[[250,-50],[250,-130]],motion:false},
+      {pid:"wr1",pts:[[70,-50],[70,-130]],motion:false}
+    ]
+  },
+  {
+    id:"pass-bubble-l", name:"Bubble Screen Left", type:"Pass", subtype:"Screen", ballOn:5,
+    desc:"Quick pass to RB2 on the left. Mirror of right bubble.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:310,y:-50,role:"WR"},{id:"rb2",x:70,y:-45,role:"WR"},{id:"wr1",x:130,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb2",pts:[[70,-45],[50,-35],[20,-55]],motion:false},
+      {pid:"rb1",pts:[[310,-50],[310,-130]],motion:false},
+      {pid:"wr1",pts:[[130,-50],[130,-130]],motion:false}
+    ]
+  },
+
+  // === DEEP PASSES ===
+  {
+    id:"pass-4verts", name:"Four Verticals", type:"Pass", subtype:"Deep", ballOn:5,
+    desc:"Everyone goes deep. QB picks the most open receiver. Shot play.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:50,y:-50,role:"WR"},{id:"rb2",x:320,y:-50,role:"WR"},{id:"wr1",x:140,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[50,-50],[50,-180]],motion:false},
+      {pid:"rb2",pts:[[320,-50],[320,-180]],motion:false},
+      {pid:"wr1",pts:[[140,-50],[140,-180]],motion:false},
+      {pid:"c",pts:[[187,-50],[280,-120]],motion:false}
+    ]
+  },
+  {
+    id:"pass-post", name:"Post Route", type:"Pass", subtype:"Deep", ballOn:10,
+    desc:"RB1 runs a post to the middle of the field. Big play potential.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:150,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[60,-50],[60,-100],[180,-160]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false},
+      {pid:"wr1",pts:[[150,-50],[150,-80],[100,-90]],motion:false}
+    ]
+  },
+  {
+    id:"pass-corner", name:"Corner Route", type:"Pass", subtype:"Deep", ballOn:10,
+    desc:"RB2 runs a corner route to the back-right pylon. Beats cover-2.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:280,y:-50,role:"WR"},{id:"wr1",x:150,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb2",pts:[[280,-50],[280,-100],[360,-160]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-130]],motion:false},
+      {pid:"wr1",pts:[[150,-50],[150,-80],[100,-90]],motion:false}
+    ]
+  },
+
+  // === SMASH / CONCEPT PASSES ===
+  {
+    id:"pass-smash-r", name:"Smash Right", type:"Pass", subtype:"Concept", ballOn:10,
+    desc:"High-low read: WR1 runs flat, RB2 runs corner over the top. First real read.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:320,y:-50,role:"WR"},{id:"wr1",x:250,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"wr1",pts:[[250,-50],[250,-70],[350,-70]],motion:false},
+      {pid:"rb2",pts:[[320,-50],[320,-100],[370,-150]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-100],[30,-110]],motion:false}
+    ]
+  },
+  {
+    id:"pass-flood", name:"Flood Right", type:"Pass", subtype:"Concept", ballOn:15,
+    desc:"Three receivers flood the right side at three levels: flat, out, go. Overloads zone.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:320,y:-50,role:"WR"},{id:"wr1",x:240,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"c",pts:[[187,-50],[250,-60],[340,-60]],motion:false},
+      {pid:"wr1",pts:[[240,-50],[240,-90],[340,-90]],motion:false},
+      {pid:"rb2",pts:[[320,-50],[320,-160]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-120]],motion:false}
+    ]
+  },
+
+  // === ROLLOUTS ===
+  {
+    id:"pass-roll-r", name:"Rollout Right", type:"Pass", subtype:"Rollout", ballOn:10,
+    desc:"QB rolls right, reads flat to corner. Good for kids who panic in the pocket.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:320,y:-50,role:"WR"},{id:"wr1",x:250,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"qb",pts:[[187,0],[250,-10],[310,-20]],motion:false},
+      {pid:"wr1",pts:[[250,-50],[250,-70],[350,-70]],motion:false},
+      {pid:"rb2",pts:[[320,-50],[320,-100],[370,-140]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-120]],motion:false}
+    ]
+  },
+  {
+    id:"pass-roll-l", name:"Rollout Left", type:"Pass", subtype:"Rollout", ballOn:10,
+    desc:"QB rolls left. Mirror of right rollout.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:320,y:-50,role:"WR"},{id:"wr1",x:120,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"qb",pts:[[187,0],[120,-10],[70,-20]],motion:false},
+      {pid:"wr1",pts:[[120,-50],[120,-70],[30,-70]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-100],[10,-140]],motion:false},
+      {pid:"rb2",pts:[[320,-50],[320,-120]],motion:false}
+    ]
+  },
+
+  // === TRICK PLAYS ===
+  {
+    id:"trick-reverse", name:"Reverse", type:"Trick", subtype:"Reverse", ballOn:5,
+    desc:"QB hands to RB1 going right. RB1 hands to RB2 coming back left. Max 1-2x/game.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:140,y:-15,role:"RB"},{id:"rb2",x:250,y:-15,role:"WR"},{id:"wr1",x:310,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[140,-15],[220,-25],[280,-35]],motion:false},
+      {pid:"rb2",pts:[[250,-15],[180,-30],[80,-50],[20,-65]],motion:false,runAfter:true},
+      {pid:"wr1",pts:[[310,-50],[310,-120]],motion:false}
+    ]
+  },
+  {
+    id:"trick-double-pass", name:"Double Pass", type:"Trick", subtype:"Trick Pass", ballOn:10,
+    desc:"QB hands to RB1, who throws downfield to WR1. Legal as long as Luca throws from behind LOS.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:130,y:-15,role:"RB"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:70,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[130,-15],[200,-25],[260,-30]],motion:false},
+      {pid:"wr1",pts:[[70,-50],[70,-100],[150,-150]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false}
+    ]
+  },
+  {
+    id:"trick-hook-lateral", name:"Hook & Lateral", type:"Trick", subtype:"Lateral", ballOn:15,
+    desc:"QB throws curl to WR1, WR1 laterals to RB1 running behind. Timing play.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:100,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:200,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"wr1",pts:[[200,-50],[200,-100],[210,-95]],motion:false},
+      {pid:"rb1",pts:[[100,-50],[100,-70],[180,-85],[300,-100]],motion:false,runAfter:true},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false}
+    ]
+  },
+  {
+    id:"trick-center-out", name:"Center Leak", type:"Trick", subtype:"Trick Pass", ballOn:20,
+    desc:"WR3 snaps and leaks out to the flat. Nobody covers the center. Surprise TD.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:140,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"c",pts:[[187,-50],[230,-65],[310,-80],[360,-100]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-130]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-130]],motion:false},
+      {pid:"wr1",pts:[[140,-50],[140,-100],[190,-130]],motion:false}
+    ]
+  },
+  {
+    id:"trick-flea-flicker", name:"Flea Flicker", type:"Trick", subtype:"Trick Pass", ballOn:15,
+    desc:"QB hands to RB1, Luca pitches back to QB, QB throws deep. All behind LOS.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:140,y:-10,role:"RB"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:70,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[140,-10],[200,-15],[230,-20],[200,-10]],motion:false},
+      {pid:"rb2",pts:[[310,-50],[310,-170]],motion:false},
+      {pid:"wr1",pts:[[70,-50],[70,-170]],motion:false}
+    ]
+  },
+
+  // === PAT PLAYS ===
+  {
+    id:"pat-out-r", name:"PAT: Quick Out Right", type:"PAT", subtype:"1pt", ballOn:45,
+    desc:"1pt PAT from the 5. RB1 runs a quick out to the right corner of the end zone.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:310,y:-50,role:"WR"},{id:"rb2",x:120,y:-50,role:"WR"},{id:"wr1",x:60,y:-50,role:"WR"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[310,-50],[310,-80],[370,-85]],motion:false},
+      {pid:"rb2",pts:[[120,-50],[120,-70],[250,-85]],motion:false},
+      {pid:"wr1",pts:[[60,-50],[30,-80]],motion:false}
+    ]
+  },
+  {
+    id:"pat-slant", name:"PAT: Slant to WR1", type:"PAT", subtype:"1pt", ballOn:45,
+    desc:"1pt PAT. WR1 runs a quick slant across the end zone. High percentage.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:310,y:-50,role:"WR"},{id:"rb2",x:60,y:-50,role:"WR"},{id:"wr1",x:130,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"wr1",pts:[[130,-50],[130,-65],[220,-80]],motion:false},
+      {pid:"rb1",pts:[[310,-50],[310,-85]],motion:false},
+      {pid:"rb2",pts:[[60,-50],[30,-80]],motion:false}
+    ]
+  },
+  {
+    id:"pat-2pt-jet", name:"PAT: 2pt Jet Sweep", type:"PAT", subtype:"2pt", ballOn:40,
+    desc:"2pt PAT from the 10. Jet sweep to RB1. Can run on 2pt attempts.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:80,y:-20,role:"JET"},{id:"rb2",x:310,y:-50,role:"WR"},{id:"wr1",x:120,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb1",pts:[[80,-20],[180,-30],[290,-40],[370,-55]],motion:true,runAfter:true},
+      {pid:"rb2",pts:[[310,-50],[310,-90]],motion:false},
+      {pid:"wr1",pts:[[120,-50],[120,-90]],motion:false}
+    ]
+  },
+  {
+    id:"pat-2pt-fade", name:"PAT: 2pt Fade to RB2", type:"PAT", subtype:"2pt", ballOn:40,
+    desc:"2pt PAT from the 10. RB2 runs a fade to the back corner. Jump ball.",
+    players:[
+      {id:"qb",x:187,y:0,role:"QB"},{id:"c",x:187,y:-50,role:"C"},
+      {id:"rb1",x:60,y:-50,role:"WR"},{id:"rb2",x:320,y:-50,role:"WR"},{id:"wr1",x:150,y:-50,role:"SLOT"}
+    ],
+    routes:[
+      {pid:"rb2",pts:[[320,-50],[330,-80],[350,-120]],motion:false},
+      {pid:"rb1",pts:[[60,-50],[60,-80],[30,-90]],motion:false},
+      {pid:"wr1",pts:[[150,-50],[150,-70],[220,-80]],motion:false}
+    ]
+  }
+];
+
+// ============================================================
+// APP
+// ============================================================
+const ROSTER = [
+  {id:"qb",name:"QB",role:"QB",color:"#3b82f6"},
+  {id:"c",name:"WR3",role:"C",color:"#eab308"},
+  {id:"rb1",name:"RB1",role:"RB",color:"#ef4444"},
+  {id:"rb2",name:"RB2",role:"RB",color:"#f97316"},
+  {id:"wr1",name:"WR1",role:"WR",color:"#a855f7"},
+];
+const rosterInfo = id => ROSTER.find(r=>r.id===id);
+const FW=375, FH=560, EZH=60, YH=(FH-2*EZH)/50, PR=18;
+const y2yard = y => Math.round(50-(y-EZH)/YH);
+const yard2y = yd => EZH+(50-yd)*YH;
+
+function resolvePlay(play) {
+  const losY = yard2y(play.ballOn);
+  const ps = play.players.map(p=>({id:p.id, x:p.x, y:losY+p.y, role:p.role}));
+  const rs = (play.routes||[]).map(r=>({
+    playerId:r.pid,
+    points:r.pts.map(pt=>({x:pt[0],y:losY+pt[1]})),
+    isMotion:!!r.motion
+  }));
+  return {players:ps, routes:rs};
+}
+
+function getRecommendations(down,ytg,ballOn,plays) {
+  if(plays.length===0) return {plays:[],reasoning:["Save or load plays first."]};
+  const r=[], reasoning=[];
+  const isPAT=down===0, is4=down===4, is3=down===3, scoring=ballOn>=25, rz=ballOn>=40, goalLine=ballOn>=45;
+  const beforeMid=ballOn<25, short=ytg<=10, long=ytg>20;
+  const lastDown=beforeMid?(down===4):(down===3);
+
+  if(isPAT){
+    reasoning.push("PAT situation. 1pt from the 5 (pass only). 2pt from the 10 (run or pass).");
+    plays.filter(p=>p.type==="PAT").forEach(p=>r.push({play:p,score:100,reason:"PAT play"}));
+    if(r.length===0) plays.filter(p=>p.type==="Pass").slice(0,2).forEach(p=>r.push({play:p,score:60,reason:"Short pass (no PAT plays saved)"}));
+  } else if(lastDown){
+    reasoning.push(`Last down! ${beforeMid?"4th down before midfield -- punt gives them ball at their 5.":"3rd down in scoring range -- last chance to score."}`);
+    if(beforeMid){
+      reasoning.push("Consider punting unless you're close to mid or feeling aggressive.");
+      plays.filter(p=>p.type==="Trick").forEach(p=>r.push({play:p,score:80,reason:"Trick play surprise on 4th"}));
+      plays.filter(p=>p.type==="Run").forEach(p=>r.push({play:p,score:75,reason:"4th down run -- go for it"}));
+    } else {
+      reasoning.push("Must score. Call your best play.");
+      plays.filter(p=>p.type==="Pass").forEach(p=>r.push({play:p,score:90,reason:"Must-score pass"}));
+      plays.filter(p=>p.type==="Run").forEach(p=>r.push({play:p,score:88,reason:"Must-score run"}));
+    }
+  } else if(goalLine){
+    reasoning.push("Goal line. Inside the 5. Quick passes and jet sweeps.");
+    plays.filter(p=>p.type==="Run").forEach(p=>r.push({play:p,score:95,reason:"Goal line run"}));
+    plays.filter(p=>p.type==="Pass"&&(p.subtype==="Quick Pass"||p.subtype==="Screen")).forEach(p=>r.push({play:p,score:85,reason:"Goal line quick pass"}));
+  } else if(rz){
+    reasoning.push("Red zone. Close to scoring. Mix runs and short passes.");
+    plays.filter(p=>p.type==="Run").forEach(p=>r.push({play:p,score:88,reason:"Red zone run"}));
+    plays.filter(p=>p.type==="Pass").forEach(p=>r.push({play:p,score:80,reason:"Red zone pass"}));
+  } else if(long){
+    reasoning.push("Long way to go. Need chunk yards. Deep passes or play-action.");
+    plays.filter(p=>p.type==="Pass"&&(p.subtype==="Deep"||p.subtype==="Play Action")).forEach(p=>r.push({play:p,score:92,reason:"Deep/PA for chunk yards"}));
+    plays.filter(p=>p.type==="Pass").forEach(p=>r.push({play:p,score:70,reason:"Pass play"}));
+    plays.filter(p=>p.type==="Trick").forEach(p=>r.push({play:p,score:65,reason:"Trick for big gain"}));
+  } else {
+    // Normal situation
+    if(down===1){
+      reasoning.push(`1st down${beforeMid?" -- 4 downs to cross midfield.":" -- 3 downs to score."} Establish the run.`);
+      plays.filter(p=>p.type==="Run").forEach(p=>r.push({play:p,score:85,reason:"1st down run"}));
+      plays.filter(p=>p.type==="Pass").forEach(p=>r.push({play:p,score:60,reason:"1st down pass (surprise)"}));
+    } else if(down===2){
+      reasoning.push("2nd down. Mix it up. Run or pass depending on 1st down result.");
+      plays.forEach(p=>{
+        if(p.type==="Run") r.push({play:p,score:75,reason:"2nd down run"});
+        else if(p.type==="Pass") r.push({play:p,score:75,reason:"2nd down pass"});
+      });
+      plays.filter(p=>p.type==="Pass"&&p.subtype==="Play Action").forEach(p=>{const idx=r.findIndex(x=>x.play.id===p.id);if(idx>=0)r[idx].score=85;});
+    } else if(down===3&&beforeMid){
+      reasoning.push("3rd down before mid. Still have 4th down if this doesn't work, but try to convert.");
+      plays.filter(p=>p.type==="Run").forEach(p=>r.push({play:p,score:80,reason:"3rd down run"}));
+      plays.filter(p=>p.type==="Pass").forEach(p=>r.push({play:p,score:78,reason:"3rd down pass"}));
+    }
+  }
+
+  const seen=new Set();
+  const unique=r.filter(x=>{if(seen.has(x.play.id))return false;seen.add(x.play.id);return true;}).sort((a,b)=>b.score-a.score).slice(0,5);
+  return {plays:unique,reasoning};
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+let state = {
+  down:1, ytg:25, ballOn:5,
+  tab:"playbook", // playbook | design | recommend | rules
+  plays: [...PREBUILT_PLAYS],
+  customPlays: [],
+  // design state
+  designPlay: null,
+  mode:"move", activePlayer:null,
+  dPlayers:[], dRoutes:[], drawing:null, dragOff:null,
+  animating:false, animProg:0,
+  playName:"", playType:"Run",
+  filter:"All",
+  violations:[]
+};
+
+function setState(updates) {
+  Object.assign(state, updates);
+  render();
+}
+
+function allPlays(){ return [...state.plays, ...state.customPlays]; }
+
+function situationText(){
+  if(state.down===0) return "PAT";
+  const s=state.down===1?"st":state.down===2?"nd":state.down===3?"rd":"th";
+  if(state.ballOn<25) return `${state.down}${s} & Mid`;
+  return `${state.down}${s} & Goal`;
+}
+function fieldPosText(){
+  if(state.ballOn<=25) return `Own ${state.ballOn} (${4-state.down+1} left to mid)`;
+  return `Opp ${50-state.ballOn} (${state.downsLeft||3-state.down+1} left to score)`;
+}
+
+function loadPlayToDesigner(play){
+  const {players:ps,routes:rs}=resolvePlay(play);
+  setState({
+    tab:"design", designPlay:play, dPlayers:ps, dRoutes:rs,
+    playName:play.name, playType:play.type, ballOn:play.ballOn,
+    mode:"move", activePlayer:null, drawing:null, animating:false, animProg:0
+  });
+}
+
+function renderField(players, routes, interactive, animProg){
+  const losY=yard2y(state.ballOn);
+  const midY=yard2y(25);
+  const ltgY=state.down>0?yard2y(Math.min(state.ballOn+state.ytg,50)):null;
+
+  let svg=`<svg class="field" viewBox="0 0 ${FW} ${FH}" id="field-svg">`;
+  // Background
+  svg+=`<rect x="0" y="0" width="${FW}" height="${FH}" fill="${'#1a6b37'}" rx="8"/>`;
+  // End zones
+  svg+=`<rect x="0" y="0" width="${FW}" height="${EZH}" fill="#145229" rx="8"/>`;
+  svg+=`<rect x="0" y="0" width="${FW}" height="8" fill="#145229" rx="8"/>`;
+  svg+=`<rect x="0" y="${FH-EZH}" width="${FW}" height="${EZH}" fill="#145229"/>`;
+  svg+=`<text x="${FW/2}" y="35" text-anchor="middle" fill="#2d8a4e" font-size="12" font-weight="800" letter-spacing="5">ENDZONE</text>`;
+  svg+=`<text x="${FW/2}" y="${FH-25}" text-anchor="middle" fill="#2d8a4e" font-size="12" font-weight="800" letter-spacing="5">ENDZONE</text>`;
+
+  // Yard lines
+  for(let i=0;i<=10;i++){
+    const y=EZH+i*5*YH, num=50-i*5;
+    svg+=`<line x1="20" y1="${y}" x2="${FW-20}" y2="${y}" stroke="#2d8a4e" stroke-width="${i===5?1.5:0.7}"/>`;
+    if(num>0&&num<50) svg+=`<text x="10" y="${y+3}" fill="#2d8a4e" font-size="7">${num}</text>`;
+    if(i===5) svg+=`<text x="${FW-12}" y="${y+3}" text-anchor="end" fill="#4ade80" font-size="7" font-weight="700">50</text>`;
+  }
+
+  // No Run Zones not in effect for 8U regular season
+
+  // LOS
+  svg+=`<line x1="10" y1="${losY}" x2="${FW-10}" y2="${losY}" stroke="#fff" stroke-width="2" stroke-dasharray="8,5" opacity="0.6"/>`;
+  svg+=`<text x="8" y="${losY-4}" fill="#fff" font-size="8" opacity="0.5" font-weight="700">LOS</text>`;
+
+  // Line to gain
+  if(ltgY!==null){
+    svg+=`<line x1="10" y1="${ltgY}" x2="${FW-10}" y2="${ltgY}" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.5"/>`;
+    svg+=`<text x="${FW-10}" y="${ltgY-4}" text-anchor="end" fill="#fbbf24" font-size="7" opacity="0.6" font-weight="700">1ST</text>`;
+  }
+
+  // Routes
+  routes.forEach(route=>{
+    if(route.points.length<2)return;
+    const d=route.points.map((pt,i)=>`${i===0?"M":"L"} ${pt.x} ${pt.y}`).join(" ");
+    const color=route.isMotion?"#f97316":"#fff";
+    const dash=route.isMotion?"5,3":"none";
+    svg+=`<path d="${d}" stroke="${color}" stroke-width="2.5" fill="none" stroke-dasharray="${dash}" opacity="0.8" marker-end="url(#ah-${route.isMotion?'m':'r'})"/>`;
+  });
+
+  // Players
+  players.forEach(p=>{
+    const info=rosterInfo(p.id); if(!info)return;
+    let px=p.x, py=p.y;
+    if(animProg!==undefined&&animProg>0){
+      const route=routes.find(r=>r.playerId===p.id);
+      if(route&&route.points.length>=2){
+        const pts=route.points;
+        let total=0;
+        for(let i=1;i<pts.length;i++) total+=Math.sqrt((pts[i].x-pts[i-1].x)**2+(pts[i].y-pts[i-1].y)**2);
+        const target=total*animProg;
+        let acc=0;
+        for(let i=1;i<pts.length;i++){
+          const seg=Math.sqrt((pts[i].x-pts[i-1].x)**2+(pts[i].y-pts[i-1].y)**2);
+          if(acc+seg>=target){const t=(target-acc)/seg;px=pts[i-1].x+(pts[i].x-pts[i-1].x)*t;py=pts[i-1].y+(pts[i].y-pts[i-1].y)*t;break;}
+          acc+=seg;
+        }
+      }
+    }
+    const sel=state.activePlayer===p.id&&!state.animating;
+    svg+=`<circle cx="${px}" cy="${py}" r="${PR}" fill="${info.color}" stroke="${sel?'#fff':'#000'}" stroke-width="${sel?2.5:1.5}"/>`;
+    const nm=info.name.length>6?info.name.split(" ")[0]:info.name;
+    svg+=`<text x="${px}" y="${py-3}" text-anchor="middle" fill="#fff" font-size="7" font-weight="800">${nm}</text>`;
+    svg+=`<text x="${px}" y="${py+6}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="6">${p.role||info.role}</text>`;
+  });
+
+  svg+=`<defs><marker id="ah-r" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#fff"/></marker>`;
+  svg+=`<marker id="ah-m" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#f97316"/></marker></defs>`;
+  svg+=`</svg>`;
+  return svg;
+}
+
+function render(){
+  const app=document.getElementById("app");
+  let html="";
+
+  // HEADER
+  html+=`<div class="header">
+    <div class="header-left"><h1>PLAYMAKER 8U</h1><div class="sub">NFL FLAG / ARMONK</div></div>
+    <div class="situation-display">
+      <div class="down-dist">${situationText()}</div>
+      <div class="field-pos">Ball on ${fieldPosText()}</div>
+    </div>
+  </div>`;
+
+  // DOWN/DISTANCE BAR
+  html+=`<div class="dd-bar">
+    <div class="dd-group"><label>DOWN</label><div class="dd-buttons">`;
+  [0,1,2,3,4].forEach(d=>{
+    html+=`<button class="dd-btn ${state.down===d?'active':''}" onclick="setDown(${d})">${d===0?'PAT':d}</button>`;
+  });
+  html+=`</div></div>`;
+  html+=`<div class="dd-group"><label>PHASE</label><div class="dd-buttons">
+    <button class="dd-btn ${state.ballOn<25?'active':''}" onclick="setPhase('mid')" style="${state.ballOn<25?'font-size:9px':'font-size:9px'}">TO MID</button>
+    <button class="dd-btn ${state.ballOn>=25?'active':''}" onclick="setPhase('score')" style="font-size:9px">TO SCORE</button>
+  </div></div>`;
+  html+=`<div class="dd-group"><label>BALL ON</label><div class="dd-stepper">
+    <button onclick="adjBall(-5)">-</button><span class="val">${state.ballOn}</span><button onclick="adjBall(5)">+</button>
+  </div></div>`;
+  html+=`<div class="dd-group"><label></label><div class="dd-buttons">
+    <button class="dd-btn" onclick="nextPlay(true)" style="font-size:9px;background:#14532d;border-color:#22c55e;color:#4ade80">GAIN</button>
+    <button class="dd-btn" onclick="nextPlay(false)" style="font-size:9px;background:#3b0f0f;border-color:#ef4444;color:#ef4444">NO GAIN</button>
+    <button class="dd-btn" onclick="turnover()" style="font-size:9px">TURN</button>
+  </div></div>`;
+  html+=`</div>`;
+
+  // TABS
+  html+=`<div class="tabs">`;
+  ["playbook","design","recommend","rules"].forEach(t=>{
+    const labels={playbook:`PLAYS (${allPlays().length})`,design:"DESIGN",recommend:"CALL",rules:"RULES"};
+    html+=`<button class="tab-btn ${state.tab===t?'active':''}" onclick="setTab('${t}')">${labels[t]}</button>`;
+  });
+  html+=`</div>`;
+
+  // CONTENT
+  html+=`<div class="content">`;
+
+  if(state.tab==="playbook"){
+    // Filter bar
+    const types=["All","Run","Pass","Trick","PAT"];
+    html+=`<div style="display:flex;gap:4px;padding:10px 12px;flex-wrap:wrap;">`;
+    types.forEach(t=>{
+      const colors={All:"#fff",Run:"#eab308",Pass:"#3b82f6",Trick:"#a855f7",PAT:"#ef4444"};
+      html+=`<button class="btn" style="${state.filter===t?`border-color:${colors[t]};color:${colors[t]}`:''}" onclick="setFilter('${t}')">${t}</button>`;
+    });
+    // Subtype filters
+    if(state.filter==="Run") ["Jet Motion","Handoff","Misdirection","Pitch"].forEach(s=>html+=`<button class="btn" style="font-size:9px" onclick="setFilter('${s}')">${s}</button>`);
+    if(state.filter==="Pass") ["Quick Pass","Play Action","Screen","Deep","Concept","Rollout","Intermediate"].forEach(s=>html+=`<button class="btn" style="font-size:9px" onclick="setFilter('${s}')">${s}</button>`);
+    html+=`</div>`;
+
+    const ap=allPlays().filter(p=>{
+      if(state.filter==="All")return true;
+      if(["Run","Pass","Trick","PAT"].includes(state.filter))return p.type===state.filter;
+      return p.subtype===state.filter;
+    });
+
+    html+=`<div class="play-list">`;
+    if(ap.length===0) html+=`<div style="text-align:center;color:#475569;padding:20px;font-size:12px">No plays match filter.</div>`;
+    
+    // Group by type
+    const grouped={};
+    ap.forEach(p=>{if(!grouped[p.type])grouped[p.type]=[];grouped[p.type].push(p);});
+    const typeColors={Run:"#eab308",Pass:"#3b82f6",Trick:"#a855f7",PAT:"#ef4444"};
+    Object.keys(grouped).forEach(type=>{
+      html+=`<div class="play-category"><div class="play-category-title" style="color:${typeColors[type]||'#fff'}">${type.toUpperCase()} (${grouped[type].length})</div>`;
+      grouped[type].forEach(play=>{
+        html+=`<div class="play-card" onclick="loadPlayToDesigner('${play.id}')">
+          <div><div class="name">${play.name}</div><div class="meta">${play.subtype||play.type} / Ball: ${play.ballOn||5}</div>
+          ${play.desc?`<div style="font-size:10px;color:#484f58;margin-top:3px;max-width:280px">${play.desc}</div>`:''}</div>
+          <button class="btn btn-blue" onclick="event.stopPropagation();loadPlayToDesigner('${play.id}')">Load</button>
+        </div>`;
+      });
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+
+  } else if(state.tab==="recommend"){
+    const recs=getRecommendations(state.down,state.ytg,state.ballOn,allPlays());
+    html+=`<div class="rec-section">`;
+    html+=`<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:8px">${situationText()} at ${fieldPosText()}</div>`;
+    
+    html+=`<div class="rec-reasoning">`;
+    recs.reasoning.forEach(r=>html+=`<div style="margin-bottom:4px">${r}</div>`);
+    html+=`</div>`;
+
+    if(recs.plays.length>0){
+      html+=`<div style="font-size:9px;color:#475569;letter-spacing:1px;margin-bottom:8px">RECOMMENDED CALLS</div>`;
+      recs.plays.forEach((rec,i)=>{
+        html+=`<div class="rec-card ${i===0?'top':''}">
+          <div>
+            <div>${i===0?'<span class="rec-badge">TOP PICK</span>':''}<span class="rec-name">${rec.play.name}</span><span class="rec-type">${rec.play.type}</span></div>
+            <div class="rec-reason">${rec.reason}</div>
+          </div>
+          <button class="btn btn-blue" onclick="loadPlayToDesigner('${rec.play.id}')">Load</button>
+        </div>`;
+      });
+    } else {
+      html+=`<div style="text-align:center;color:#475569;padding:30px;font-size:12px">Save plays to get recommendations.</div>`;
+    }
+
+    // Quick situations
+    html+=`<div style="margin-top:20px"><div style="font-size:9px;color:#475569;letter-spacing:1px;margin-bottom:6px">QUICK SITUATIONS</div><div class="quick-sits">`;
+    [{l:"1st to Mid",d:1,y:25,b:5},{l:"2nd to Mid",d:2,y:20,b:10},{l:"3rd to Mid",d:3,y:15,b:15},{l:"4th to Mid",d:4,y:5,b:20},
+     {l:"1st to Score",d:1,y:20,b:30},{l:"2nd to Score",d:2,y:15,b:35},{l:"3rd & Goal",d:3,y:5,b:45},{l:"PAT (1pt)",d:0,y:5,b:45},{l:"PAT (2pt)",d:0,y:10,b:40}
+    ].forEach(s=>html+=`<button class="quick-sit" onclick="quickSit(${s.d},${s.y},${s.b})">${s.l}</button>`);
+    html+=`</div></div>`;
+    html+=`</div>`;
+
+  } else if(state.tab==="design"){
+    // Mode bar
+    html+=`<div class="mode-bar">`;
+    [{k:"move",l:"MOVE",i:"✋"},{k:"route",l:"ROUTE",i:"✏️"},{k:"motion",l:"MOTION",i:"↔"}].forEach(m=>{
+      html+=`<button class="btn ${state.mode===m.k?'btn-green':''}" onclick="setMode('${m.k}')">${m.i} ${m.l}</button>`;
+    });
+    html+=`<button class="btn ${state.animating?'btn-yellow':''}" onclick="toggleAnim()">${state.animating?'■ STOP':'▶ PLAY'}</button>`;
+    html+=`<button class="btn" onclick="clearRoutes()">CLR</button>`;
+    html+=`</div>`;
+
+    // Player select
+    if(state.mode==="route"||state.mode==="motion"){
+      html+=`<div class="player-select">`;
+      ROSTER.forEach(r=>{
+        const sel=state.activePlayer===r.id;
+        html+=`<button class="btn" style="${sel?`border-color:${r.color};color:${r.color}`:''}" onclick="selectPlayer('${r.id}')">${r.name}</button>`;
+      });
+      html+=`</div>`;
+    }
+
+    // Violations
+    if(state.violations.length>0){
+      html+=`<div class="violations">`;
+      state.violations.forEach(v=>html+=`<div>FLAG: ${v}</div>`);
+      html+=`</div>`;
+    }
+
+    // Field
+    html+=`<div class="field-wrap">${renderField(state.dPlayers,state.dRoutes,true,state.animating?state.animProg:undefined)}</div>`;
+
+    // Play info
+    if(state.designPlay){
+      html+=`<div style="padding:4px 16px;font-size:11px;color:#8b949e">${state.designPlay.desc||''}</div>`;
+    }
+
+    // Save bar
+    html+=`<div class="save-bar">
+      <input id="play-name" value="${state.playName}" placeholder="Play name..." onchange="setPlayName(this.value)"/>
+      <select onchange="setPlayType(this.value)">`;
+    ["Run","Pass","Trick","PAT"].forEach(t=>html+=`<option value="${t}" ${state.playType===t?'selected':''}>${t}</option>`);
+    html+=`</select><button class="btn btn-green" onclick="saveCustomPlay()">SAVE</button></div>`;
+
+  } else if(state.tab==="rules"){
+    html+=`<div class="rules-panel">`;
+    html+=`<div style="font-size:13px;font-weight:900;color:#4ade80;margin-bottom:10px;letter-spacing:1px">8U RULES QUICK REFERENCE</div>`;
+    const rules=[
+      "No blocking or screening, ever -- get out of the way",
+      "QB cannot run across the LOS -- must hand off, pitch, or throw",
+      "No center sneak -- first exchange can't go to the center",
+      "No pass rush unless handoff in backfield (regular season)",
+      "7-second pass clock -- dead ball if not thrown in time",
+      "No Run Zones NOT in effect (8U regular season)",
+      "4 downs to cross midfield, then 3 downs to score a TD",
+      "Every possession starts at own 5-yard line, no kickoffs",
+      "Punt is a declaration -- coach says punt, ball goes to other team at their 5",
+      "Ball on ground = dead ball -- no fumble recoveries",
+      "No diving, jumping, or hurdling as a ball carrier",
+      "No flag guarding -- no stiff arms, no shielding flags",
+      "Catch with only 1 flag = immediately down at catch spot",
+      "Simultaneous catch goes to offense",
+      "No intentional grounding -- QB can throw anywhere past LOS",
+      "PAT: 1pt from 5 (pass only), 2pt from 10 (run or pass)",
+      "INT returned during regulation = 6pts, during PAT/OT = 2pts",
+      "One coach on field pre-snap only, must be off before snap",
+      "One man in motion at snap, parallel or backward only",
+      "35-point mercy rule ends the game (regular season)"
+    ];
+    rules.forEach((r,i)=>html+=`<div class="rule-item"><span class="rule-num">${i+1}.</span>${r}</div>`);
+    html+=`</div>`;
+  }
+
+  html+=`</div>`; // content
+  app.innerHTML=html;
+
+  // Attach field touch handlers if in design mode
+  if(state.tab==="design"){
+    const svg=document.getElementById("field-svg");
+    if(svg){
+      svg.addEventListener("mousedown",onFieldDown);
+      svg.addEventListener("mousemove",onFieldMove);
+      svg.addEventListener("mouseup",onFieldUp);
+      svg.addEventListener("touchstart",onFieldDown,{passive:false});
+      svg.addEventListener("touchmove",onFieldMove,{passive:false});
+      svg.addEventListener("touchend",onFieldUp,{passive:false});
+    }
+  }
+}
+
+// ============================================================
+// FIELD INTERACTION
+// ============================================================
+function getSVGPt(e){
+  const svg=document.getElementById("field-svg");
+  if(!svg)return{x:0,y:0};
+  const rect=svg.getBoundingClientRect();
+  const touch=e.touches?e.touches[0]:e.changedTouches?e.changedTouches[0]:e;
+  return{x:((touch.clientX-rect.left)/rect.width)*FW, y:((touch.clientY-rect.top)/rect.height)*FH};
+}
+
+function onFieldDown(e){
+  e.preventDefault();
+  const pt=getSVGPt(e);
+  if(state.mode==="route"||state.mode==="motion"){
+    if(state.activePlayer){
+      const p=state.dPlayers.find(x=>x.id===state.activePlayer);
+      if(p) state.drawing={playerId:state.activePlayer,points:[{x:p.x,y:p.y},pt],isMotion:state.mode==="motion"};
+    }
+    return;
+  }
+  let closest=null,minD=50;
+  state.dPlayers.forEach(p=>{const d=Math.sqrt((pt.x-p.x)**2+(pt.y-p.y)**2);if(d<minD){closest=p;minD=d;}});
+  if(closest){state.activePlayer=closest.id;state.dragOff={dx:closest.x-pt.x,dy:closest.y-pt.y};}
+}
+
+function onFieldMove(e){
+  e.preventDefault();
+  const pt=getSVGPt(e);
+  if(state.drawing){
+    state.drawing.points[state.drawing.points.length-1]=pt;
+    renderFieldOnly();return;
+  }
+  if(state.mode==="move"&&state.activePlayer&&state.dragOff){
+    const p=state.dPlayers.find(x=>x.id===state.activePlayer);
+    if(p){p.x=Math.max(PR,Math.min(FW-PR,pt.x+state.dragOff.dx));p.y=Math.max(PR,Math.min(FH-PR,pt.y+state.dragOff.dy));}
+    renderFieldOnly();
+  }
+}
+
+function onFieldUp(e){
+  e.preventDefault();
+  if(state.drawing){
+    const pt=getSVGPt(e);
+    state.drawing.points[state.drawing.points.length-1]=pt;
+    const idx=state.dRoutes.findIndex(r=>r.playerId===state.drawing.playerId);
+    if(idx>=0)state.dRoutes[idx]=state.drawing;else state.dRoutes.push(state.drawing);
+    state.drawing=null;
+    checkRules();
+    render();return;
+  }
+  state.dragOff=null;
+  checkRules();
+  render();
+}
+
+function renderFieldOnly(){
+  const wrap=document.querySelector(".field-wrap");
+  if(wrap){
+    const allRoutes=[...state.dRoutes];
+    if(state.drawing)allRoutes.push(state.drawing);
+    wrap.innerHTML=renderField(state.dPlayers,allRoutes,true,state.animating?state.animProg:undefined);
+    const svg=document.getElementById("field-svg");
+    if(svg){
+      svg.addEventListener("mousedown",onFieldDown);
+      svg.addEventListener("mousemove",onFieldMove);
+      svg.addEventListener("mouseup",onFieldUp);
+      svg.addEventListener("touchstart",onFieldDown,{passive:false});
+      svg.addEventListener("touchmove",onFieldMove,{passive:false});
+      svg.addEventListener("touchend",onFieldUp,{passive:false});
+    }
+  }
+}
+
+function checkRules(){
+  const v=[];
+  const losY=yard2y(state.ballOn);
+  const qbRoute=state.dRoutes.find(r=>r.playerId==="qb");
+  if(qbRoute&&qbRoute.points.length>=2&&qbRoute.points.some(pt=>pt.y<losY)){
+    v.push("QB cannot run across the LOS.");
+  }
+  const motions=state.dRoutes.filter(r=>r.isMotion);
+  if(motions.length>1) v.push("Only 1 player can be in motion at snap.");
+  state.violations=v;
+}
+
+// ============================================================
+// ANIMATION
+// ============================================================
+let animFrame=null;
+function toggleAnim(){
+  if(state.animating){
+    cancelAnimationFrame(animFrame);
+    setState({animating:false,animProg:0});
+  } else {
+    if(state.dRoutes.length===0)return;
+    state.animating=true;state.animProg=0;
+    const start=performance.now();
+    function step(now){
+      const p=Math.min((now-start)/2500,1);
+      state.animProg=p;
+      renderFieldOnly();
+      if(p<1)animFrame=requestAnimationFrame(step);
+      else setState({animating:false,animProg:0});
+    }
+    animFrame=requestAnimationFrame(step);
+    render();
+  }
+}
+
+// ============================================================
+// GLOBAL HANDLERS
+// ============================================================
+window.setDown=d=>{setState({down:d});if(d===0)setState({ballOn:45,ytg:5});};
+window.adjBall=n=>setState({ballOn:Math.max(1,Math.min(49,state.ballOn+n))});
+window.adjYtg=n=>setState({ytg:Math.max(1,Math.min(50,state.ytg+n))});
+window.setPhase=p=>{
+  if(p==='mid') setState({ballOn:5,down:1,ytg:25});
+  else setState({ballOn:26,down:1,ytg:24});
+};
+window.nextPlay=(gained)=>{
+  let d=state.down, bo=state.ballOn;
+  if(gained) bo=Math.min(49,bo+5); // approximate 5 yard gain
+  d++;
+  // Check if crossed midfield
+  if(state.ballOn<25 && bo>=25){
+    // Crossed midfield! Reset to 1st down, 3 downs to score
+    setState({down:1,ballOn:bo,ytg:50-bo});
+    return;
+  }
+  // Before midfield: 4 downs
+  if(bo<25){
+    if(d>4){
+      // Turnover on downs (or punt)
+      setState({down:1,ballOn:5,ytg:25});
+      return;
+    }
+    setState({down:d,ballOn:bo,ytg:25-bo});
+  } else {
+    // After midfield: 3 downs
+    if(d>3){
+      // Turnover on downs
+      setState({down:1,ballOn:5,ytg:25});
+      return;
+    }
+    setState({down:d,ballOn:bo,ytg:50-bo});
+  }
+};
+window.turnover=()=>setState({down:1,ballOn:5,ytg:25});
+window.setTab=t=>setState({tab:t});
+window.setFilter=f=>setState({filter:f});
+window.setMode=m=>setState({mode:m});
+window.selectPlayer=id=>setState({activePlayer:id});
+window.clearRoutes=()=>setState({dRoutes:[],drawing:null});
+window.setPlayName=v=>{state.playName=v;};
+window.setPlayType=v=>{state.playType=v;};
+window.quickSit=(d,y,b)=>setState({down:d,ytg:y,ballOn:b});
+
+window.loadPlayToDesigner=id=>{
+  const play=allPlays().find(p=>p.id===id);
+  if(play)loadPlayToDesigner(play);
+};
+
+window.saveCustomPlay=()=>{
+  const name=document.getElementById("play-name")?.value||state.playName;
+  if(!name.trim())return;
+  const play={
+    id:"custom-"+Date.now(), name, type:state.playType, subtype:state.playType,
+    ballOn:state.ballOn, desc:"Custom play",
+    players:state.dPlayers.map(p=>({id:p.id,x:p.x,y:p.y-yard2y(state.ballOn),role:p.role||rosterInfo(p.id)?.role})),
+    routes:state.dRoutes.map(r=>({pid:r.playerId,pts:r.points.map(pt=>[pt.x,pt.y-yard2y(state.ballOn)]),motion:r.isMotion}))
+  };
+  state.customPlays.push(play);
+  setState({playName:""});
+};
+
+// Init
+function init(){
+  // Set default design players
+  const losY=yard2y(state.ballOn);
+  state.dPlayers=[
+    {id:"qb",x:187,y:losY+50,role:"QB"},
+    {id:"c",x:187,y:losY,role:"C"},
+    {id:"rb1",x:60,y:losY,role:"RB"},
+    {id:"rb2",x:314,y:losY,role:"RB"},
+    {id:"wr1",x:120,y:losY,role:"WR"}
+  ];
+  render();
+}
+init();
+</script>
+
+</body>
+</html>
